@@ -10,49 +10,94 @@
     .container { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     h1 { color: #1e3a8a; text-align: center; font-size: 20px; margin-bottom: 5px; }
     .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; }
-    .module-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 12px; transition: 0.2s; }
+    
+    /* Danh sách chương */
+    .module-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+    .module-card:hover { border-color: #3b82f6; background: #f0f7ff; box-shadow: 0 2px 8px rgba(59,130,246,0.1); }
     .module-title { font-weight: bold; color: #1e3a8a; font-size: 15px; margin-bottom: 5px; }
     .module-desc { font-size: 13px; color: #555; }
+    
+    /* Khu vực làm bài */
+    .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+    .back-btn { background: #64748b; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .back-btn:hover { background: #475569; }
+    .question-box { margin-bottom: 20px; }
+    .question-title { font-weight: bold; font-size: 15px; color: #1e293b; margin-bottom: 10px; }
+    .option-item { display: block; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; font-size: 14px; transition: 0.1s; }
+    .option-item:hover { background: #f1f5f9; }
+    .option-item input { margin-right: 8px; }
+    
+    /* Kết quả & Nút bấm */
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+    .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .btn:hover { background: #1d4ed8; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    
     .loading { text-align: center; color: #fff; font-size: 15px; margin-top: 50px; }
+    .correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534; }
+    .incorrect { background: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b; }
   </style>
 </head>
 <body>
-  <div class="loading" id="loadingText">⏳ Đang tải dữ liệu hệ thống ôn thi...</div>
+  <div class="loading" id="loadingText">⏳ Đang tải hệ thống...</div>
+  
   <div class="container" id="mainContainer" style="display:none;">
     <h1>Hệ Thống Ôn Thi Trắc Nghiệm Y Khoa</h1>
     <div class="subtitle">Biên soạn: Bs TRUNG</div>
-    <div id="modulesList"></div>
+    
+    <!-- Màn hình danh sách chương -->
+    <div id="homeView">
+      <div id="modulesList"></div>
+    </div>
+
+    <!-- Màn hình làm bài -->
+    <div id="quizView" style="display:none;">
+      <div class="quiz-header">
+        <button class="back-btn" onclick="goHome()">⬅ Quay lại danh sách</button>
+        <span id="quizProgress" style="font-weight: bold; color: #2563eb; font-size: 14px;"></span>
+      </div>
+      <div id="quizContent"></div>
+      <div class="nav-buttons">
+        <button class="btn" id="prevBtn" onclick="prevQuestion()">Câu trước</button>
+        <button class="btn" id="nextBtn" onclick="nextQuestion()">Câu sau</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // Danh sách 3 file JSON bác vừa tải lên GitHub
     const dataFiles = [
       { name: "Chương 1: Thần Kinh Cơ Bản (Bản 1375 câu)", file: "Chuong 1_1375_cau.json" },
       { name: "Chương 1: Thần Kinh Cơ Bản (Bản 700 câu)", file: "Chuong 1_700_cau.json" },
       { name: "Chương 1: Câu Hỏi Ngắn & Tự Luận Thần Kinh Cơ Bản", file: "Chuong 1_cau_hoi_ngan_va_tu_luan.json" }
     ];
 
+    let allModulesData = {};
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let userAnswers = {};
+
     async function initApp() {
       try {
         let html = '';
-        
-        for (let item of dataFiles) {
+        for (let i = 0; i < dataFiles.length; i++) {
+          let item = dataFiles[i];
           try {
             let res = await fetch(item.file);
             let data = await res.json();
-            let totalQ = Array.isArray(data) ? data.length : (data.questions ? data.questions.length : 0);
+            allModulesData[i] = Array.isArray(data) ? data : (data.questions || []);
+            let totalQ = allModulesData[i].length;
             
             html += `
-              <div class="module-card">
+              <div class="module-card" onclick="startQuiz(${i})">
                 <div class="module-title">📖 ${item.name}</div>
-                <div class="module-desc">Tổng số: ${totalQ > 0 ? totalQ + ' câu hỏi' : 'Đã tải dữ liệu thành công'}</div>
+                <div class="module-desc">Tổng số: ${totalQ} câu hỏi (Bấm để ôn tập)</div>
               </div>
             `;
           } catch (e) {
             html += `
-              <div class="module-card">
+              <div class="module-card" style="border-color:red;">
                 <div class="module-title">📖 ${item.name}</div>
-                <div class="module-desc" style="color:red;">Không đọc được file ${item.file}</div>
+                <div class="module-desc" style="color:red;">Không đọc được file dữ liệu</div>
               </div>
             `;
           }
@@ -61,9 +106,88 @@
         document.getElementById('loadingText').style.display = 'none';
         document.getElementById('mainContainer').style.display = 'block';
         document.getElementById('modulesList').innerHTML = html;
-
       } catch (err) {
-        document.getElementById('loadingText').innerText = "❌ Lỗi khởi động: " + err.message;
+        document.getElementById('loadingText').innerText = "❌ Lỗi: " + err.message;
+      }
+    }
+
+    function startQuiz(index) {
+      currentQuestions = allModulesData[index];
+      if (!currentQuestions || currentQuestions.length === 0) {
+        alert("Chương này chưa có dữ liệu câu hỏi!");
+        return;
+      }
+      currentIndex = 0;
+      userAnswers = {};
+      document.getElementById('homeView').style.display = 'none';
+      document.getElementById('quizView').style.display = 'block';
+      renderQuestion();
+    }
+
+    function goHome() {
+      document.getElementById('quizView').style.display = 'none';
+      document.getElementById('homeView').style.display = 'block';
+    }
+
+    function renderQuestion() {
+      let q = currentQuestions[currentIndex];
+      document.getElementById('quizProgress').innerText = `Câu ${currentIndex + 1} / ${currentQuestions.length}`;
+      
+      // Hỗ trợ nhiều định dạng cấu trúc JSON khác nhau (tuỳ thuộc vào file của bác)
+      let qText = q.question || q.cau_hoi || q.tieu_de || "Câu hỏi không có nội dung";
+      let options = q.options || q.choices || q.dap_an || [q.A, q.B, q.C, q.D].filter(Boolean);
+      let correctAns = q.answer || q.dap_an_dung || q.correct;
+
+      let html = `<div class="question-box">
+        <div class="question-title">${currentIndex + 1}. ${qText}</div>`;
+      
+      if (Array.isArray(options)) {
+        options.forEach((opt, idx) => {
+          let optLabel = String.fromCharCode(65 + idx); // A, B, C, D
+          let isChecked = userAnswers[currentIndex] === optLabel || userAnswers[currentIndex] === opt ? 'checked' : '';
+          let statusClass = '';
+          
+          if (userAnswers[currentIndex]) {
+            if (optLabel === correctAns || opt === correctAns) {
+              statusClass = 'correct';
+            } else if (isChecked) {
+              statusClass = 'incorrect';
+            }
+          }
+
+          html += `
+            <label class="option-item ${statusClass}" onclick="selectAnswer('${optLabel}', '${correctAns}')">
+              <input type="radio" name="q_${currentIndex}" value="${optLabel}" ${isChecked}> ${opt}
+            </label>`;
+        });
+      }
+      html += `</div>`;
+
+      document.getElementById('quizContent').innerHTML = html;
+      document.getElementById('prevBtn').disabled = currentIndex === 0;
+      document.getElementById('nextBtn').innerText = currentIndex === currentQuestions.length - 1 ? 'Hoàn thành' : 'Câu sau';
+    }
+
+    function selectAnswer(selected, correct) {
+      if (userAnswers[currentIndex]) return; // Đã chọn rồi thì không cho đổi
+      userAnswers[currentIndex] = selected;
+      renderQuestion(); // Render lại để hiện màu đúng/sai ngay lập tức
+    }
+
+    function nextQuestion() {
+      if (currentIndex < currentQuestions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      } else {
+        alert("Đã hoàn thành bài ôn tập! Bác có thể ôn lại hoặc quay về danh sách.");
+        goHome();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
       }
     }
 

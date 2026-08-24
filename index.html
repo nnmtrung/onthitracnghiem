@@ -3,14 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Hệ Thống Ôn Thi Trắc Nghiệm - Bs TRUNG</title>
+  <title>Hệ Thống Ôn Thi Trắc Nghiệm Y Khoa - Bs TRUNG</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #1e3a8a; }
-    iframe { width: 100%; height: 100%; border: none; display: block; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1e3a8a; color: #333; padding: 15px; }
+    .container { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    h1 { color: #1e3a8a; text-align: center; font-size: 20px; margin-bottom: 5px; }
+    .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; }
+    .module-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 12px; transition: 0.2s; }
+    .module-title { font-weight: bold; color: #1e3a8a; font-size: 15px; margin-bottom: 5px; }
+    .module-desc { font-size: 13px; color: #555; }
+    .loading { text-align: center; color: #fff; font-size: 15px; margin-top: 50px; }
   </style>
 </head>
 <body>
-  <iframe src="https://script.google.com/macros/s/AKfycbwvsTmEdPIduv-5ERlMcTkFX_KZRpLyri9Dfsm9xBKlOJP9sODLRLEO_x4fDSH7_Wpd/exec" allow="fullscreen"></iframe>
+  <div class="loading" id="loadingText">⏳ Đang tải dữ liệu hệ thống ôn thi...</div>
+  <div class="container" id="mainContainer" style="display:none;">
+    <h1>Hệ Thống Ôn Thi Trắc Nghiệm Y Khoa</h1>
+    <div class="subtitle">Biên soạn: Bs TRUNG</div>
+    <div id="modulesList"></div>
+  </div>
+
+  <script>
+    // Danh sách 3 file JSON bác vừa tải lên GitHub
+    const dataFiles = [
+      { name: "Chương 1: Thần Kinh Cơ Bản (Bản 1375 câu)", file: "Chuong 1_1375_cau.json" },
+      { name: "Chương 1: Thần Kinh Cơ Bản (Bản 700 câu)", file: "Chuong 1_700_cau.json" },
+      { name: "Chương 1: Câu Hỏi Ngắn & Tự Luận Thần Kinh Cơ Bản", file: "Chuong 1_cau_hoi_ngan_va_tu_luan.json" }
+    ];
+
+    async function initApp() {
+      try {
+        let html = '';
+        
+        for (let item of dataFiles) {
+          try {
+            let res = await fetch(item.file);
+            let data = await res.json();
+            let totalQ = Array.isArray(data) ? data.length : (data.questions ? data.questions.length : 0);
+            
+            html += `
+              <div class="module-card">
+                <div class="module-title">📖 ${item.name}</div>
+                <div class="module-desc">Tổng số: ${totalQ > 0 ? totalQ + ' câu hỏi' : 'Đã tải dữ liệu thành công'}</div>
+              </div>
+            `;
+          } catch (e) {
+            html += `
+              <div class="module-card">
+                <div class="module-title">📖 ${item.name}</div>
+                <div class="module-desc" style="color:red;">Không đọc được file ${item.file}</div>
+              </div>
+            `;
+          }
+        }
+
+        document.getElementById('loadingText').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'block';
+        document.getElementById('modulesList').innerHTML = html;
+
+      } catch (err) {
+        document.getElementById('loadingText').innerText = "❌ Lỗi khởi động: " + err.message;
+      }
+    }
+
+    initApp();
+  </script>
 </body>
 </html>

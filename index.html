@@ -2,61 +2,14 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Hệ Thống Ôn Thi Trắc Nghiệm Y Khoa - Bs TRUNG</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1e3a8a; color: #333; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-    h1 { color: #1e3a8a; text-align: center; font-size: 22px; margin-bottom: 5px; }
-    .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 20px; }
-    .module-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 12px; transition: 0.2s; }
-    .module-card:hover { border-color: #3b82f6; box-shadow: 0 2px 8px rgba(59,130,246,0.1); }
-    .module-title { font-weight: bold; color: #1e3a8a; font-size: 16px; margin-bottom: 5px; }
-    .module-desc { font-size: 13px; color: #555; }
-    .loading { text-align: center; color: #fff; font-size: 16px; margin-top: 50px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbwvsTmEdPIduv-5ERlMcTkFX_KZRpLyri9Dfsm9xBKlOJP9sODLRLEO_x4fDSH7_Wpd/exec">
+  <title>Hệ Thống Ôn Thi Trắc Nghiệm - Bs TRUNG</title>
 </head>
-<body>
-  <div class="loading" id="loadingText">⏳ Đang kết nối lấy dữ liệu từ Google Drive...</div>
-  <div class="container" id="mainContainer" style="display:none;">
-    <h1>Hệ Thống Ôn Thi Trắc Nghiệm Y Khoa</h1>
-    <div class="subtitle">Biên soạn: Bs TRUNG</div>
-    <div id="modulesList"></div>
+<body style="background:#1e3a8a; color:white; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; text-align:center;">
+  <div>
+    <h3>Đang chuyển hướng đến Hệ Thống Ôn Thi...</h3>
+    <p style="font-size:14px; color:#bfdbfe; margin-top:10px;">Vui lòng đợi trong giây lát.</p>
   </div>
-
-  <script>
-    // Link API Google Apps Script chỉ để lấy danh sách file và nội dung JSON (Đã tối ưu CORS)
-    const API_URL = "https://script.google.com/macros/s/AKfycbwvsTmEdPIduv-5ERlMcTkFX_KZRpLyri9Dfsm9xBKlOJP9sODLRLEO_x4fDSH7_Wpd/exec";
-
-    async function loadData() {
-      try {
-        let response = await fetch(API_URL + "?action=getModules");
-        let result = await response.json();
-        
-        if (result.success) {
-          document.getElementById('loadingText').style.display = 'none';
-          document.getElementById('mainContainer').style.display = 'block';
-          
-          let html = '';
-          result.modules.forEach(m => {
-            html += `
-              <div class="module-card">
-                <div class="module-title">📖 ${m.title}</div>
-                <div class="module-desc">${m.subtitle} • Tổng số: ${m.totalQuestions} câu hỏi</div>
-              </div>
-            `;
-          });
-          document.getElementById('modulesList').innerHTML = html;
-        } else {
-          document.getElementById('loadingText').innerText = "❌ Lỗi tải dữ liệu: " + result.error;
-        }
-      } catch (err) {
-        document.getElementById('loadingText').innerText = "❌ Không thể kết nối tới máy chủ: " + err;
-      }
-    }
-
-    loadData();
-  </script>
 </body>
 </html>
